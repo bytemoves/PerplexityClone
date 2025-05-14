@@ -22,17 +22,21 @@ class SortSourceService:
         return response.embeddings[0]
         
     def sort_sources(self, query: str, search_result: list):
-        relevant_docs = []
-        query_embedding = self._get_embedding(query, input_type="search_query")
-        
-        # Calculate cosine similarity for each result
-        for res in search_result:
-            res_embedding = self._get_embedding(res['content'], input_type="search_document")
-            similarity = np.dot(query_embedding, res_embedding) / (np.linalg.norm(query_embedding) * np.linalg.norm(res_embedding))
+        try:
+            relevant_docs = []
+            query_embedding = self._get_embedding(query, input_type="search_query")
             
-            res['relevance_score'] = similarity
-            
-            if similarity > 0.3:
-                relevant_docs.append(res)
+            # Calculate cosine similarity for each result
+            for res in search_result:
+                res_embedding = self._get_embedding(res['content'], input_type="search_document")
+                similarity = float(np.dot(query_embedding, res_embedding) / (np.linalg.norm(query_embedding) * np.linalg.norm(res_embedding)))
                 
-            return sorted(relevant_docs,key=lambda x:x['relevance_score'],reverse=True)
+                res['relevance_score'] = similarity
+                
+                if similarity > 0.3:
+                    relevant_docs.append(res)
+                    
+                return sorted(relevant_docs,key=lambda x:x['relevance_score'],reverse=True)
+        except Exception as e:
+              print(e)
+                
